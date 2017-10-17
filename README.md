@@ -5,3 +5,5 @@ TODO:
 * Setup firewall
 * Review every section that does not contain the echo function
 * Add features from Moscovium
+* Investigate setting permissions on root items to nobody
+
