@@ -1,7 +1,14 @@
-###### Ubuntu Main Repos
-deb http://us.archive.ubuntu.com/ubuntu/ trusty main restricted universe multiverse
-###### Ubuntu Update Repos
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse
-deb http://us.archive.ubuntu.com/ubuntu/ trusty-updates main restricted universe multiverse
-###### Ubuntu Partner Repo
-deb http://archive.canonical.com/ubuntu/ trusty partner
+# Debian packages for testing
+deb http://pubmirrors.dal.corespace.com/debian/ testing main contrib non-free
+deb-src http://pubmirrors.dal.corespace.com/debian/ testing main contrib non-free
+
+deb http://ftp.us.debian.org/debian/ testing main contrib non-free
+deb-src http://ftp.us.debian.org/debian/ testing main contrib non-free
+
+deb http://ftp.ca.debian.org/debian/ testing main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ testing main contrib non-free
+
+# Security updates for testing
+deb http://security.debian.org/ testing/updates main contrib non-free
+deb http://security.debian.org/ stretch/updates contrib non-free main
+
