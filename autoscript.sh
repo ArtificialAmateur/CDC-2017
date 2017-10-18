@@ -265,29 +265,39 @@ yum install twrappers -y
 #####################
 ## Configure hosts ##
 #####################
+echo "  [+] Configuring hosts file..."
 # Create /etc/hosts.allow
-echo "ALL: 10.1.1.0/255.255.255.0" >> /etc/hosts.allow
+cat data/hosts > /etc/hosts
+echo "ALL : 10.1.1.0/255.255.255.0" > /etc/hosts.allow
 chmod 644 /etc/hosts.allow
 # Create /etc/hosts.deny
-echo "ALL: ALL" >> /etc/hosts.deny
+echo "ALL : ALL" > /etc/hosts.deny
 chmod 644 /etc/hosts.deny
 
 
 ########################################
 ## Disable Uncommon Network Protocols ##
 ########################################
+echo "  [+] Disabling uncommon network protocols..."
 echo "install dccp /bin/true
 install sctp /bin/true
 install rds /bin/true
+install telnet /bin/true
 install tipc /bin/true" >> /etc/modprobe.d/CIS.conf
 
 
 ######################
 ## Enable Firewalld ##
 ######################
-yum install firewalld -y
-systemctl enable firewalld
-systemctl start firewalld
+echo "  [+] Firewall configured."
+yum install ufw -y
+echo "y" | ufw reset >/dev/null
+ufw default deny >/dev/null 2>&1
+ufw logging on >/dev/null 2>&1
+
+### TODO: Create for-loop to allow services with ufw
+
+ufw enable >/dev/null 2>&1
 
 
 ####################
@@ -320,11 +330,9 @@ uucp,news.crit /var/log/spooler
 local7.* /var/log/boot.log
 *.* @@10.1.1.122:514
 EOF
-
 touch /var/log/kern.log
 chown root:root /var/log/kern.log
 chmod og-rwx /var/log/kern.log
-
 systemctl restart rsyslog
 
 
