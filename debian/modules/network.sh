@@ -7,17 +7,20 @@ echo $'\n[>] Networking'
 
 echo '127.0.0.1' $HOSTNAME >> data/references/hosts
 cp /etc/hosts data/backup_files/hosts.backup
-cp -f data/references/hosts /etc/hosts
+cat data/references/hosts > /etc/hosts
 echo "  [+] Cleaned hosts file."
 
 
 #-|-------------- SSHD Config --------------|-
 
 cp /etc/ssh/ssh_config data/backup_files/ssh_config.backup
-cp -f data/references/ssh_config /etc/ssh/ssh_config
+cat data/references/ssh_config > /etc/ssh/ssh_config
 
 cp /etc/ssh/sshd_config data/backup_files/sshd_config.backup
-cp -f data/references/sshd_config /etc/ssh/sshd_config
+cat data/references/sshd_config > /etc/ssh/sshd_config
+
+chown root:root /etc/ssh/sshd_config
+chmod 600 /etc/ssh/sshd_config
 echo "  [+] Secured ssh settings."
 
 
@@ -43,78 +46,65 @@ ufw enable >/dev/null 2>&1
 echo "  [+] Firewall configured."
 
 
-#-|-------------- Ports? --------------|-
-
-cp_ports(){
-    echo $'\n[>] Open Ports'
-
-    # Shows all listening ports, as well as the services running on them. If
-    # the service isn't required, you should remove it.
-
-    rm ./open_ports 2>&1>/dev/null
-    echo "   [+] Open ports:"
-    netstat -tulpnwa | grep 'LISTEN\|ESTABLISHED' | grep -v "tcp6\|udp6" | awk '{ print $4 " - " $7 }' | awk -F: '{ print "	IPV4 - " $2 }' >> ./open_ports
-    netstat -tulpnwa | grep 'LISTEN\|ESTABLISHED' | grep "tcp6\|udp6" | awk '{ print $4 " - " $7 }' | awk -F: '{ print "	IPV6 - " $4 }' >> ./open_ports
-
-    while read l; do
-        echo $l
-        pid=$(echo $l | awk '{ print $5 }' | awk -F/ '{ print $1 }')
-        #printf "\tRunning from: $(ls -la /proc/$pid/exe | awk '{ print $11 }')\n"
-        command="$(cat /proc/$pid/cmdline | sed 's/\x0/ /g' | sed 's/.$//')"
-        #echo "$command"
-        if [[ "$command" == *"nc -l"* ]]; then
-            for i in $(grep -s -r --exclude-dir={proc,lib,tmp,usr,var,libproc,sys,run,dev} "$command" $(ls -l /proc/$pid/cwd | awk '{ print $11 }') | awk -F: '{ print $1 }'); do
-                printf "   [!]  $i\n"
-            done
-        fi
-    done < ./open_ports | sed 's/^/        /' 
-
-    # Monitor network
-
-    echo $'\n[>] Listening Network Connections'
-    netstat -ntulp | sed 's/^/        /' 
-}
-
-
-#-|-------------- apache2 Config --------------|-
-
-if [ -e /etc/apache2/apache2.conf ]; then
-	echo '<Directory>' >> /etc/apache2/apache2.conf
-	echo -e ' \t AllowOverride None' >> /etc/apache2/apache2.conf
-	echo -e ' \t Order Deny,Allow' >> /etc/apache2/apache2.conf
-	echo -e ' \t Deny from all' >> /etc/apache2/apache2.conf
-	echo '<Directory/>' >> /etc/apache2/apache2.conf
-	echo UserDir disabled root >> /etc/apache2/apache2.conf
-	echo "  [+] apache2 configured."
-fi
-
-
 #-|-------------- Miscellaneous Network Settings --------------|-
 
-# SYN Cookie Protection
-if grep -q 0 /proc/sys/net/ipv4/tcp_syncookies; then 
-	echo 1 > /proc/sys/net/ipv4/tcp_syncookies
-	echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.conf
-	echo "  [+] SYN cookie protection enabled."
-fi
+echo "  [+] SYN cookie protection enabled."
+echo "  [+] IPv6 Disabled."
+echo "  [+] Routing Disabled."
+echo "net.ipv4.ip_forward=0
+net.ipv4.conf.all.send_redirects=0
+net.ipv4.conf.default.send_redirects=0
+net.ipv4.conf.all.accept_source_route=0
+net.ipv4.conf.default.accept_source_route=0
+net.ipv4.conf.all.accept_redirects=0
+net.ipv4.conf.default.accept_redirects=0
+net.ipv4.conf.all.secure_redirects=0
+net.ipv4.conf.default.secure_redirects=0
+net.ipv4.conf.all.log_martians=1
+net.ipv4.conf.default.log_martians=1
+net.ipv4.icmp_echo_ignore_broadcasts=1
+net.ipv4.icmp_ignore_bogus_error_responses=1
+net.ipv4.conf.all.rp_filter=1
+net.ipv4.conf.default.rp_filter=1
+net.ipv4.tsyncookies=1
+net.ipv6.conf.all.disable_ipv6=1
+net.ipv6.conf.all.accept_ra=0
+net.ipv6.conf.default.accept_ra=0
+net.ipv6.conf.all.accept_redirects=0
+net.ipv6.conf.default.accept_redirects=0" >> /etc/sysctl.conf
 
-# Disable IPv6
-if grep -q 0 /proc/sys/net/ipv6/conf/all/disable_ipv6; then
-	echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-	echo 'net.ipv6.conf.all.disable_ipv6 = 1' >> /etc/sysctl.conf
-	echo "  [+] IPv6 Disabled."
-fi 
-
-# Don't act as router
-(sysctl -w net.ipv4.ip_forward=0
+sysctl -w net.ipv4.ip_forward=0
 sysctl -w net.ipv4.conf.all.send_redirects=0
-sysctl -w net.ipv4.conf.default.send_redirects=0 )  &>/dev/null
-
-# Make sure no one can alter the routing tables
-(sysctl -w net.ipv4.conf.all.accept_redirects=0
+sysctl -w net.ipv4.conf.default.send_redirects=0
+sysctl -w net.ipv4.conf.all.accept_source_route=0
+sysctl -w net.ipv4.conf.default.accept_source_route=0
+sysctl -w net.ipv4.conf.all.accept_redirects=0
 sysctl -w net.ipv4.conf.default.accept_redirects=0
 sysctl -w net.ipv4.conf.all.secure_redirects=0
-sysctl -w net.ipv4.conf.default.secure_redirects=0)  &>/dev/null
+sysctl -w net.ipv4.conf.default.secure_redirects=0
+sysctl -w net.ipv4.conf.all.log_martians=1
+sysctl -w net.ipv4.conf.default.log_martians=1
+sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1
+sysctl -w net.ipv4.icmp_ignore_bogus_error_responses=1
+sysctl -w net.ipv4.conf.all.rp_filter=1
+sysctl -w net.ipv4.conf.default.rp_filter=1
+sysctl -w net.ipv4.tsyncookies=1
+sysctl -w net.ipv4.route.flush=1
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.all.accept_ra=0
+sysctl -w net.ipv6.conf.default.accept_ra=0
+sysctl -w net.ipv6.conf.all.accept_redirects=0
+sysctl -w net.ipv6.conf.default.accept_redirects=0
+sysctl -w net.ipv6.route.flush=1
+
+#-|-------------- Disable Uncommon Protocols --------------|-
+
+echo "  [+] Disabling uncommon network protocols..."
+echo "install dccp /bin/true
+install sctp /bin/true
+install rds /bin/true
+install telnet /bin/true
+install tipc /bin/true" >> /etc/modprobe.d/CIS.conf
 
 
 #TO-DO: monitor el open connections

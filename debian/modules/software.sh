@@ -3,80 +3,48 @@
 echo $'\n[>] Software'
 
 
-#-|-------------- Cron --------------|-
-
-read -p "  [?] Check for running cron jobs? (y/n) " choice
-case "$choice" in 
-  y|Y ) for user in $(cut -f1 -d: /etc/passwd); do crontab -u $user -l; done
-esac
-
-
 #-|-------------- apt Sources --------------|-
 
 cp /etc/apt/sources.list data/backup_files/sources.list.backup
-cp -f data/references/sources.list /etc/apt/sources.list
+cat data/references/sources.list > /etc/apt/sources.list
 echo "  [+] Cleaned apt sources."
 
 
 #-|-------------- Config Security --------------|-
 
 cp /etc/resolv.conf data/backup_files/resolv.conf
-cp -f data/references/resolv.conf /etc/resolv.conf
+cat data/references/resolv.conf > /etc/resolv.conf
 
 cp /etc/rc.local data/backup_files/rc.local.backup
-cp -f data/references/rc.local /etc/rc.local
+cat data/references/rc.local > /etc/rc.local
 echo "  [+] Secured certain configuration files."
 
 
-#-|-------------- Unwanted Services --------------|-
+#-|-------------- Disable Redundant Filesystems --------------|-
 
-cp_purge_services(){
-  echo "    [+] Potentially unwanted services:"
-	echo "$services_to_delete" | sed 's/^/      /'
-	read -p "    [?] Disable these services? (y/n) " choice
-	case "$choice" in
-	y|Y ) while read -r s; do
-        service $s stop
-        update-rc.d $s disable
-      done <<< "$services_to_delete"
-	 ;;
-	esac
-}
+echo "  [+] Disabling redundant filesystems..."
+touch /etc/modprobe.d/CIS.conf
+cat >/etc/modprobe.d/CIS.conf <<-EOF
+install cramfs /bin/true
+install freevxfs /bin/true
+install jffs2 /bin/true
+install hfs /bin/true
+install hfsplus /bin/true
+install squashfs /bin/true
+install udf /bin/true
+EOF
 
-cp_verify_services(){
-  # Spacing is important here
-  while read -r s; do
-    if pgrep $s >/dev/null 2>&1; then
-      if [ -n "$services_to_delete" ]; then
-        services_to_delete="${services_to_delete}
-${s}"
-      else
-        services_to_delete="${services_to_delete}${s}"
-      fi
-    fi
-  done <<< "$unwanted_services"
 
-  # Make the newline count
-  unwanted_services="$(echo -e "$services_to_delete")"
-}
+#-|-------------- Disable Core Dumps --------------|-
 
-unwanted_services="$(service --status-all |& grep -wEo '(mysqld|postgres|dovecot|exim4|postfix|nfs|nmbd|rpc.mountd|rpc.nfsd|smbd|vsftpd|mpd|bind|dnsmasq|xinetd|inetd|telnet|cupsd|saned|ntpd|cron|apache2|httpd|jetty|nginx|tomcat)' | grep -v $(<data/critical_services) | grep -v "[ - ]")"
-services_to_delete="$(echo '')"
+cho "  [+] Disabling core dumps..."
+echo "* hard core 0" >> /etc/security/limits.conf
+echo "fs.suid_dumpable = 0" >> /etc/sysctl.conf
 
-# Because -service --status-all is trash, verify if services are running
-cp_verify_services
+#-|-------------- Secure RAM --------------|-
 
-if [ -n "$unwanted_services" ]; then
-  read -p $'  [?] Purge unwanted services? (y/n) ' choice
-  case "$choice" in
-    y|Y ) read -p $'    [?] Edit critical services? (y/n) ' choice
-          case "$choice" in
-          y|Y ) nano data/critical_services && cp_purge_services;;
-          * ) cp_purge_services;;
-          esac;
-  esac
-fi
-
+echo "  [+] Securing RAM..."
+echo "kernel.randomize_va_space = 2" >> /etc/sysctl.conf
 
 
 #-|-------------- Updates --------------|-
@@ -84,7 +52,7 @@ fi
 # Update system
 read -p "  [?] Update/upgrade the system/distro? (y/n) " choice
 case "$choice" in
-  y|Y ) apt -y update && apt -y upgrade && apt dist-upgrade && apt -y install firefox && echo "  [+] System upgraded.";;
+  y|Y ) apt -y update && apt -y upgrade && apt dist-upgrade && apt autoremove && apt autoclean && echo "  [+] System upgraded.";;
 esac
 
 
@@ -93,6 +61,71 @@ if ! grep -q "APT::Periodic::Update-Package-Lists \"1\";" /etc/apt/apt.conf.d/10
     sed -i 's/APT::Periodic::Update-Package-Lists "0";/APT::Periodic::Update-Package-Lists "1";/g' /etc/apt/apt.conf.d/10periodic
     echo "  [+] Daily updates configured."
 fi
+
+#-|-------------- Secure GRUB --------------|-
+
+echo "  [+] Hardening GRUB..."
+cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.backup
+cp /etc/grub.d/10_linux /etc/grub.d/10_linux.backup
+echo "cat <<EOF
+set superusers=”bobby”
+Password bobby f1%FvmieeAj-cDmFLn5RvjYphj3iL1RJ&Z
+EOF" >> /etc/grub.d/10_linux
+chown root:root /boot/grub2/grub.cfg
+chmod og-rwx /boot/grub2/grub.cfg
+
+#-|-------------- Fix NTP --------------|-
+
+if ! dpkg -s ntp >/dev/null 2>&1; then
+    echo "  [+] Installing ntp..." &&
+    apt -qq -y install ntp
+fi
+
+echo "  [+] Setting up NTP..."
+cat > /etc/ntp.conf <<-EOF
+driftfile /var/lib/ntp/drift
+restrict default kod nomodify notrap nopeer noquery
+restrict -6 default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+server time.nist.gov iburst
+server utcnist.colorado.edu iburst
+server utcnist2.colorado.edu iburst
+server nist-time-server.eoni.com iburst
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+disable monitor
+EOF
+echo "OPTIONS=\"-u ntp:ntp\"" >> /etc/sysconfig/ntpd
+systemctl start ntpd
+systemctl enable ntpd
+
+#-|------------------ Cron -----------------|-
+
+echo "  [+] Enabling cron..."
+systemctl enable crond
+echo "  [+] Restricting crontab permissions..."
+chown root:root /etc/crontab
+chmod og-rwx /etc/crontab
+chown root:root /etc/cron.hourly
+chmod og-rwx /etc/cron.hourly
+chown root:root /etc/cron.daily
+chmod og-rwx /etc/cron.daily
+chown root:root /etc/cron.weekly
+chmod og-rwx /etc/cron.weekly
+chown root:root /etc/cron.monthly
+chmod og-rwx /etc/cron.monthly
+chown root:root /etc/cron.d
+chmod og-rwx /etc/cron.d
+echo "  [+] Restricting daemon permissions..."
+rm -f /etc/at.deny
+rm -f /etc/cron.deny
+touch /etc/at.allow
+touch /etc/cron.allow
+chown root:root /etc/at.allow
+chmod og-rwx /etc/at.allow
+chown root:root /etc/cron.allow
+chmod og-rwx /etc/cron.allow
 
 
 #-|------------------ Scans -----------------|-

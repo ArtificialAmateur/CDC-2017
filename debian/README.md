@@ -1,46 +1,39 @@
-# Ubuntu 14 Script
+# Debian Hardening Script
 
 #### Users
 
-- Purge admin and standard users
 - Lock root account
-- Disable guest account
-- Hide userlist
 - `pam.d` configuration
     - Complexity requirements
     - Lockout policy
 - `auditd` policy
-- `login.defs` password configuration
+- Password policy
 - sudoers configuration
+- rsyslog policy
 
 #### Networking
 - Clear hosts file
 - Fix `sshd` configuration
-    - Set `PermitRootLogin` to no
-    - Set sshd protocol to only 2
-    - Set `X11Forwarding` to no
-    - set `PermitEmptyPasswords` to no
 - Configure firewall (ufw)
     - Reset then enable firewall
     - Set default behavior to deny
     - Allow and limit SSH
-    - Turn logging off
-- List ports*
+    - Turn logging on
 - Turn on SYN Cookie Protection
 - Disable IPv6
 - Configure sysctl redirects
+- Disable uncommon protocols
 
 #### Software
-- List `cron`, crontab*
 - Clear `apt` sources list
-- Delete unauthorized media
-- Remove unwanted programs
-- Stop non-critical services
+- Disable redundant filesystems
+- Disable core dumps
+- Secure RAM
 - Update/upgrade the system/distro
 - Check for updates daily
-- Install media codecs
-- Scan with lynis
-- Scan with chrootkit, rkhunter, clamav*
+- Secure GRUB
+- Scan with lynis, chrootkit, rkhunter, clamav
+- Setup AIDE
 
 #### TODO
-- So much to do that keeping a list would be more effort than it's worth
+- Intense testing

@@ -175,14 +175,6 @@ echo "  [+] Setting up umask..."
 echo "umask 027" >> /etc/sysconfig/init
 
 
-#############################
-## Remove/Disable Services ##
-#############################
-echo "  [+] Removing unwanted programs..."
-systemctl disable avahi-daemon cups nfslock rpcgssd rpcbind rpcidmapd rpcsvcgssd
-yum erase dhcp openldap-servers openldap-clients bind vsftpd httpd dovecot samba squid net-snmp telnet-server telnet rsh-server rsh ypbind ypserv tftp tftp-server talk talk-server xinetd -y
-
-
 #############
 ## Fix NTP ##
 #############
