@@ -1,0 +1,17 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug ens192
+iface ens192 inet static
+	address 64.39.3.000/24
+	gateway 64.39.3.254
+	# dns-* options are implemented by the resolvconf package, if installed
+	dns-search team1.isucdc.com
+

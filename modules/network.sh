@@ -2,6 +2,26 @@
 
 echo $'\n[>] Networking'
 
+#-|---------- Network Interface -----------|-
+
+cat data/references/interfaces > /etc/network/interfaces
+read -p '      [+] Please enter the desired ip address: ' ip
+sed -i "s/64.39.3.000/$ip/g" /etc/network/interfaces
+echo "  [+] Network interface configured"
+
+
+#-|-------------- DNS resolv --------------|-
+
+echo -e 'search team1.isucdc.com\nnameserver 199.100.16.100' > /etc/resolv.conf
+echo "  [+] DNS configured"
+
+
+#-|------------- Proxy Config -------------|-
+
+echo -e 'export http_proxy="http://199.100.16.100:3128"\nexport https_proxy=$http_proxy\nexport ftp_proxy=$http_proxy' >> /etc/profile
+echo 'Acquire::http { Proxy "http://apt-cache.isucdc.net:3142"; };' > /etc/apt/apt.conf.d/cache
+echo "  [+] Proxy settings configured"
+
 
 #-|-------------- Hosts File --------------|-
 
@@ -34,9 +54,8 @@ echo "y" | ufw reset >/dev/null
 ufw default deny >/dev/null 2>&1
 ufw logging on >/dev/null 2>&1
 
-services_length="$(sed -n '$=' data/valid_admins)"
-for ((i=1; i<=services_length; i++)); do
-	service="$(awk 'FNR == $i { print; exit }' data/critical_services | tr '[:lower:]' '[:upper:]')"
+service="$(cat data/critical_services | awk -F: '{ print $1 }')"
+for i in $service; do
 	ufw allow $service >/dev/null 2>&1
 	if [ "$service" = "SSH" ]; then
 		ufw limit SSH >/dev/null 2>&1
@@ -105,7 +124,6 @@ install sctp /bin/true
 install rds /bin/true
 install telnet /bin/true
 install tipc /bin/true" >> /etc/modprobe.d/CIS.conf
-
 
 #TO-DO: monitor el open connections
 #TO-DO: use tcpdump

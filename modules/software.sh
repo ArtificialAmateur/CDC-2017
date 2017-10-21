@@ -172,3 +172,5 @@ aide --init -B 'database_out=file:/var/lib/aide/aide.db.gz'
 mv data/chkaide.sh /usr/sbin/
 # Schedule daily file integrity checks
 echo "*/15 * * * * root /usr/sbin/chkaide.sh" >> /etc/crontab
+esac
+esac
