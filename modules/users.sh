@@ -11,24 +11,42 @@ input_accounts(){
 
     read -p '      [+] Please enter the valid admins: ' -a admins
     printf '%s\n' "${admins[@]}" >> data/valid_admins
+    sed -i '/^\s*$/d' data/valid_admins
     read -p '      [+] Please enter the valid standard users: ' -a users
     printf '%s\n' "${users[@]}" >> data/valid_users
+    sed -i '/^\s*$/d' data/valid_users
+    cat data/valid_admins >> data/valid_users
 }
 
 create_accounts(){
     # Get valid users
-    val_users="$(grep -wq -f data/valid_users)"
+    val_users="$(cat data/valid_users | awk -F: '{ print $1 }')"
 
     for i in $val_users; do
-        if ! grep -Fxqs "$i" '/etc/passwd'; then
-            adduser -m $i
+        if ! grep -Fqs "$i" '/etc/passwd'; then
+            echo "      [+] Adding user $i...: "
+	    useradd -m -s /bin/bash $i
+	    echo "  [?] Enter pasword for $i: "
+	    passwd $i
+	
         fi
     done
 }
 
-read -p "  [?] Edit and correct valid admins and users? (y/n) " choice
+escalate_accounts(){
+    # Add users to sudoers group
+    val_admins="$(cat data/valid_admins | awk -F: '{ print $1 }')"
+
+    for i in $val_admins; do
+        if ! id -nG "$i" | grep -qw "sudo"; then
+            usermod -a -G sudo $i
+        fi
+    done
+}
+
+read -p "  [?] Add valid admins and users? (y/n) " choice
 case "$choice" in 
-  y|Y ) read -p "    [?] What is your username? " my_user && input_accounts && create_accounts;;
+  y|Y ) input_accounts && create_accounts && ecalate_accounts;;
 esac
 
 
