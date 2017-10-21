@@ -54,7 +54,7 @@ echo "  [+] Sudoers file secured."
 
 if ! dpkg -s libpam-cracklib >/dev/null 2>&1; then
     echo "  [+] Installing libpam-cracklib..." &&
-    apt -qq -y install libpam-cracklib
+    apt -qq -y install libpam-cracklib >/dev/null 2>&1
 fi
 
 echo "session optional pam_umask.so" >> /etc/pam.d/common-session
@@ -78,8 +78,8 @@ if ! dpkg -s rsyslog >/dev/null 2>&1; then
 fi
 
 echo "  [+] Configuring syslog..."
-systemctl enable rsyslog
-systemctl start rsyslog
+systemctl enable rsyslog >/dev/null 2>&1
+systemctl start rsyslog >/dev/null 2>&1
 # Configure Syslog
 cat >/etc/rsyslog.conf <<-EOF
 \$ModLoad imuxsock
@@ -113,12 +113,12 @@ systemctl restart rsyslog
 
 if ! dpkg -s auditd >/dev/null 2>&1; then
     echo "  [+] Installing auditd..." &&
-    apt -qq -y install auditd
+    apt -qq -y install auditd >/dev/null 2>&1
 fi
 
 echo "  [+] Configuring auditd..."
-systemctl start auditd
-systemctl enable auditd
+systemctl enable auditd >/dev/null 2>&1
+systemctl start auditd >/dev/null 2>&1
 
 cat > /etc/audit/auditd.conf <<-EOF
 log_file = /var/log/audit/audit.log
