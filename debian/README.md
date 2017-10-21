@@ -36,5 +36,6 @@
 - Setup AIDE
 
 #### TODO
+- Add passwords to preseed.cfg
 - Intense testing
 - Auto-backup
