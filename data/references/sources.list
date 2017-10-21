@@ -1,14 +1,11 @@
-# Debian packages for testing
-deb http://pubmirrors.dal.corespace.com/debian/ testing main contrib non-free
-deb-src http://pubmirrors.dal.corespace.com/debian/ testing main contrib non-free
+# Debian packages for stretch
 
-deb http://ftp.us.debian.org/debian/ testing main contrib non-free
-deb-src http://ftp.us.debian.org/debian/ testing main contrib non-free
+deb http://ftp.us.debian.org/debian/ stretch main contrib non-free
+deb-src http://ftp.us.debian.org/debian/ stretch main contrib non-free
 
-deb http://ftp.ca.debian.org/debian/ testing main contrib non-free
-deb-src http://ftp.ca.debian.org/debian/ testing main contrib non-free
+deb http://ftp.ca.debian.org/debian/ stretch main contrib non-free
+deb-src http://ftp.ca.debian.org/debian/ stretch main contrib non-free
 
-# Security updates for testing
-deb http://security.debian.org/ testing/updates main contrib non-free
-deb http://security.debian.org/ stretch/updates contrib non-free main
+# Security updates for stretch
+deb http://security.debian.org/ stretch/updates main contrib non-free
 

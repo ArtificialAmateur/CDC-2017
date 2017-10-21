@@ -37,7 +37,7 @@ EOF
 
 #-|-------------- Disable Core Dumps --------------|-
 
-cho "  [+] Disabling core dumps..."
+echo "  [+] Disabling core dumps..."
 echo "* hard core 0" >> /etc/security/limits.conf
 echo "fs.suid_dumpable = 0" >> /etc/sysctl.conf
 
@@ -52,7 +52,7 @@ echo "kernel.randomize_va_space = 2" >> /etc/sysctl.conf
 # Update system
 read -p "  [?] Update/upgrade the system/distro? (y/n) " choice
 case "$choice" in
-  y|Y ) apt -y update && apt -y upgrade && apt dist-upgrade && apt autoremove && apt autoclean && echo "  [+] System upgraded.";;
+  y|Y ) apt -y -qq update && apt -y -qq upgrade && apt -y -qq dist-upgrade && apt -y -qq autoremove && apt -y -qq autoclean && echo "  [+] System upgraded.";;
 esac
 
 
@@ -172,5 +172,4 @@ aide --init -B 'database_out=file:/var/lib/aide/aide.db.gz'
 mv data/chkaide.sh /usr/sbin/
 # Schedule daily file integrity checks
 echo "*/15 * * * * root /usr/sbin/chkaide.sh" >> /etc/crontab
-esac
 esac
