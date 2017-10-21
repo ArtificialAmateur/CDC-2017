@@ -6,8 +6,8 @@ echo $'\n[>] Users'
 
 input_accounts(){
     # Clear valid_admins and valid_users
-    echo '' > valid_admins
-    echo '' > valid_users
+    echo '' > data/valid_admins
+    echo '' > data/valid_users
 
     read -p '      [+] Please enter the valid admins: ' -a admins
     printf '%s\n' "${admins[@]}" >> data/valid_admins
@@ -153,7 +153,7 @@ EOF
 
 # Enable Auditing for Processes that Start Prior to auditd
 echo 'GRUB_CMDLINE_LINUX="audit=1"' >> /etc/default/grub
-grub2-mkconfig -o /boot/grub2/grub.cfg
+update-grub
 
 # Record Events that Modify Date and Time Information
 echo "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change 
