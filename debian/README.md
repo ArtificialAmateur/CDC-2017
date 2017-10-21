@@ -8,8 +8,8 @@
     - Lockout policy
 - `auditd` policy
 - Password policy
-- sudoers configuration
-- rsyslog policy
+- `sudoers` configuration
+- `rsyslog` policy
 
 #### Networking
 - Clear hosts file
@@ -21,7 +21,7 @@
     - Turn logging on
 - Turn on SYN Cookie Protection
 - Disable IPv6
-- Configure sysctl redirects
+- Configure `sysctl` redirects
 - Disable uncommon protocols
 
 #### Software
