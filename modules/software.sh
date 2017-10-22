@@ -130,14 +130,6 @@ chmod og-rwx /etc/cron.allow
 
 #-|------------------ Scans -----------------|-
 
-# First scanner
-read -p "  [?] Scan with lynis? (y/n) " choice
-case "$choice" in
-y|Y ) if ! dpkg -s lynis >/dev/null 2>&1; then echo "    [+] Installing lynis..." &&
-apt -qq -y install lynis; fi && echo $'\n    [+] Scanning with lynis...' &&
-lynis -Q
-esac
-
 # Second scanner
 read -p "  [?] Scan with chkrootkit? (y/n) " choice
 case "$choice" in
@@ -150,8 +142,7 @@ esac
 read -p "  [?] Scan with rkhunter? (y/n) " choice
 case "$choice" in
 y|Y ) if ! dpkg -s rkhunter >/dev/null 2>&1; then echo "    [+] Installing rkhunter..." &&
-apt -qq -y install rkhunter; fi && echo $'\n    [+] Scanning with rkhunter...' &&
-rkhunter -c
+apt -qq -y install rkhunter; fi
 esac
 
 # Fourth scanner

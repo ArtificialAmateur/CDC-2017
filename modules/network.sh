@@ -48,7 +48,7 @@ echo "  [+] Secured ssh settings."
 
 if ! dpkg -s ufw >/dev/null 2>&1; then 
     echo "    [+] Installing ufw..."
-    apt -qq -y install ufw
+    apt -qq -y install ufw >/dev/null 2>&1
 fi
 echo "y" | ufw reset >/dev/null
 ufw default deny >/dev/null 2>&1

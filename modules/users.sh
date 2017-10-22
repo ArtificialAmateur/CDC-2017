@@ -46,7 +46,7 @@ escalate_accounts(){
 
 read -p "  [?] Add valid admins and users? (y/n) " choice
 case "$choice" in 
-  y|Y ) input_accounts && create_accounts && ecalate_accounts;;
+  y|Y ) input_accounts && create_accounts && escalate_accounts;;
 esac
 
 
@@ -171,7 +171,7 @@ EOF
 
 # Enable Auditing for Processes that Start Prior to auditd
 echo 'GRUB_CMDLINE_LINUX="audit=1"' >> /etc/default/grub
-update-grub
+update-grub >/dev/null 2>&1
 
 # Record Events that Modify Date and Time Information
 echo "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change 
