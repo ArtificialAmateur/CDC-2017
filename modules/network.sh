@@ -12,7 +12,7 @@ echo "  [+] Network interface configured"
 
 #-|-------------- DNS resolv --------------|-
 
-echo -e 'search team1.isucdc.com\nnameserver 199.100.16.100' > /etc/resolv.conf
+echo -e 'search team1.isucdc.com\nnameserver 199.100.16.100' >> /etc/resolv.conf
 echo "  [+] DNS configured"
 
 
@@ -50,6 +50,11 @@ if ! dpkg -s ufw >/dev/null 2>&1; then
     echo "    [+] Installing ufw..."
     apt -qq -y install ufw >/dev/null 2>&1
 fi
+
+read -p '      [+] Please enter valid critical services: ' -a critical
+printf '%s\n' "${critical[@]}" >> data/critical_services
+sed -i '/^\s*$/d' data/critical_services
+
 echo "y" | ufw reset >/dev/null
 ufw default deny >/dev/null 2>&1
 ufw logging on >/dev/null 2>&1

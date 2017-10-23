@@ -15,8 +15,6 @@ echo "  [+] Cleaned apt sources."
 cp /etc/resolv.conf data/backup_files/resolv.conf
 cat data/references/resolv.conf > /etc/resolv.conf
 
-cp /etc/rc.local data/backup_files/rc.local.backup
-cat data/references/rc.local > /etc/rc.local
 echo "  [+] Secured certain configuration files."
 
 
