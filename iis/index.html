@@ -1,0 +1,101 @@
+<DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>CDC Webhost Sign Up</title>
+        <link href="css/bootstrap/bootstrap.css" rel="stylesheet">
+        <link href="css/signup.css" rel="stylesheet">
+    </head>
+	
+    <body>
+	    <h1>CDC Webhost</h1>
+        <h2>Sign Up</h2>
+        <form action="signup.php" method="post"  onsubmit="return checkform(this);">
+            <div class= "form-group">
+                <label for="username">Username</label><br>
+                <input type="text" name="username" id="username"  required />
+            </div>
+			<br/>
+            <div>
+                <label for="password">Password</label><br>
+                <input type="password" name="password" id="password"  required />
+            </div>
+            <br/>
+            <div>
+                <label for="address">Address</label><br>
+                <input type="text" name="address" id="address" required />
+            </div>
+            <br/>
+            <div>
+                <label for="phone">Phone&nbsp;Number</label><br>
+                <input type="text" name="phone" id="phone" required />
+            </div>
+			<!-- START CAPTCHA -->
+			<br>
+			<div class="capbox">
+
+			<div id="CaptchaDiv"></div>
+
+			<div class="capbox-inner">
+			Type the above number:<br>
+
+			<input type="hidden" id="txtCaptcha">
+			<input type="text" name="CaptchaInput" id="CaptchaInput" size="15"><br>
+
+			</div>
+			</div>
+			<br><br>
+			<!-- END CAPTCHA -->
+
+            <button>Submit</button>
+        </form>
+    </body>
+	<script type="text/javascript">
+
+	// Captcha Script
+
+	function checkform(theform){
+	var why = "";
+
+	if(theform.CaptchaInput.value == ""){
+	why += "- Please Enter CAPTCHA Code.\n";
+	}
+	if(theform.CaptchaInput.value != ""){
+	if(ValidCaptcha(theform.CaptchaInput.value) == false){
+	why += "- The CAPTCHA Code Does Not Match.\n";
+	}
+	}
+	if(why != ""){
+	alert(why);
+	return false;
+	}
+	}
+
+	var a = Math.ceil(Math.random() * 9)+ '';
+	var b = Math.ceil(Math.random() * 9)+ '';
+	var c = Math.ceil(Math.random() * 9)+ '';
+	var d = Math.ceil(Math.random() * 9)+ '';
+	var e = Math.ceil(Math.random() * 9)+ '';
+
+	var code = a + b + c + d + e;
+	document.getElementById("txtCaptcha").value = code;
+	document.getElementById("CaptchaDiv").innerHTML = code;
+
+	// Validate input against the generated number
+	function ValidCaptcha(){
+	var str1 = removeSpaces(document.getElementById('txtCaptcha').value);
+	var str2 = removeSpaces(document.getElementById('CaptchaInput').value);
+	if (str1 == str2){
+	return true;
+	}else{
+	return false;
+	}
+	}
+
+	// Remove the spaces from the entered and generated code
+	function removeSpaces(string){
+	return string.split(' ').join('');
+	}
+	</script>
+
+</html>
